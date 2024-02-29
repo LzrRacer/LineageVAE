@@ -1,8 +1,9 @@
 # LineageVAE
 
 ## Abstract
-![Conceptual Figure of LineageVAE](https://github.com/LzrRacer/LineageVAE/blob/master/conceptual_diagram.png 'Conceptual Figure')
 LineageVAE is a groundbreaking computational tool designed to map the gene expression journey of cells over time, leveraging single-cell RNA sequencing data. Unlike traditional methods that cannot track changes due to the destructive nature of sequencing, LineageVAE employs deep learning to trace cell lineage, offering insights into cell development processes. It effectively predicts the transitions and regulatory dynamics of cells back to their progenitor states with high precision, making it invaluable for studies in developmental biology and beyond.
+
+![Conceptual Figure of LineageVAE](https://github.com/LzrRacer/LineageVAE/blob/master/conceptual_diagram.png 'Conceptual Figure')
 
 This project is a collaborative effort led by the Teppei Shimamura Lab ([Tokyo Medical and Dental University, Tokyo and Nagoya University, Nagoya](https://www.shimamlab.info/)) and the Yasuhiro Kojima Lab ([National Cancer Center Research Institute, Tokyo](https://www.ncc.go.jp/jp/ri/division/computational_life_science/index.html)), and was developed by Koichiro Majima.
 
@@ -43,6 +44,9 @@ python lineagevae.py --input your_dataset.csv --output output_directory
 Replace `your_dataset.csv` with the path to your dataset file and `output_directory` with the path where you want the results to be saved.
 
 For more detailed usage instructions and advanced options, refer to the documentation in the `docs` folder.
+
+Additionally, a tutorial notebook is available to help you get started with LineageVAE:
+[Tutorial Notebook for Hematopoiesis](https://github.com/LzrRacer/LineageVAE/blob/master/tutorial/LineageVAE_for_Hematopoiesis.ipynb)
 
 ## Support
 

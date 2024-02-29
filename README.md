@@ -56,6 +56,14 @@ For questions and support, please open an issue in the [GitHub repository](https
 
 Contributions to LineageVAE are welcome! Please refer to the `CONTRIBUTING.md` file for guidelines on how to contribute.
 
+## Preprint
+
+For a comprehensive overview of the LineageVAE project, including methodologies, results, and discussions, please refer to our preprint:
+
+- Majima, K., Kojima, Y., Minoura, K., Abe, K., Hirose, H., & Shimamura, T. (2024). LineageVAE: Reconstructing Historical Cell States and Transcriptomes toward Unobserved Progenitors. bioRxiv. [https://www.biorxiv.org/content/10.1101/2024.02.16.580598v1](https://www.biorxiv.org/content/10.1101/2024.02.16.580598v1)
+
+This preprint provides detailed insights into the development and application of LineageVAE, showcasing its potential to revolutionize our understanding of cellular development processes.
+
 ## License
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.

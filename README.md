@@ -38,10 +38,10 @@ To use LineageVAE, follow these instructions:
 2. Run LineageVAE to analyze your dataset and trace cell lineage:
 
 ```bash
-python lineagevae.py --input your_dataset.h5ad. --output output_directory
+python lineagevae.py --input your_dataset.h5ad --output output_directory
 ```
 
-Replace `your_dataset.csv` with the path to your dataset file and `output_directory` with the path where you want the results to be saved.
+Replace `your_dataset.h5ad` with the path to your dataset file and `output_directory` with the path where you want the results to be saved.
 
 For more detailed usage instructions and advanced options, refer to the documentation in the `docs` folder.
 

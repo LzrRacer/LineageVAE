@@ -63,7 +63,3 @@ For a comprehensive overview of the LineageVAE project, including methodologies,
 - Majima, K., Kojima, Y., Minoura, K., Abe, K., Hirose, H., & Shimamura, T. (2024). LineageVAE: Reconstructing Historical Cell States and Transcriptomes toward Unobserved Progenitors. bioRxiv. [https://www.biorxiv.org/content/10.1101/2024.02.16.580598v1](https://www.biorxiv.org/content/10.1101/2024.02.16.580598v1)
 
 This preprint provides detailed insights into the development and application of LineageVAE, showcasing its potential to revolutionize our understanding of cellular development processes.
-
-## License
-
-This project is licensed under the MIT License - see the `LICENSE` file for details.

@@ -11,7 +11,6 @@ This project is a collaborative effort led by the Teppei Shimamura Lab ([Tokyo M
 
 Here are the GIF movies showing the results of the LineageVAE model inference:
 
-![Cell State Transition Inference](fig/state.gif "Inference of Cell State")
 ![NGP Expression Transition Inference](fig/ngp.gif "Inference for NGP Gene")
 ![PSAP Expression Transition Inference](fig/psap.gif "Inference for PSAP Gene")
 ![CD34 Expression Transition Inference](fig/cd34.gif "Inference for CD34 Gene")

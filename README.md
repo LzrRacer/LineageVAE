@@ -3,7 +3,7 @@
 ## Abstract
 LineageVAE is a groundbreaking computational tool designed to map the gene expression journey of cells over time, leveraging single-cell RNA sequencing data. Unlike traditional methods that cannot track changes due to the destructive nature of sequencing, LineageVAE employs deep learning to trace cell lineage, offering insights into cell development processes. It effectively predicts the transitions and regulatory dynamics of cells back to their progenitor states with high precision, making it invaluable for studies in developmental biology and beyond.
 
-![Conceptual Figure of LineageVAE](https://github.com/LzrRacer/LineageVAE/blob/master/conceptual_diagram.png 'Conceptual Figure')
+![Conceptual Figure of LineageVAE](https://github.com/LzrRacer/LineageVAE/blob/master/fig/conceptual_diagram.png 'Conceptual Figure')
 
 This project is a collaborative effort led by the Teppei Shimamura Lab ([Tokyo Medical and Dental University, Tokyo and Nagoya University, Nagoya](https://www.shimamlab.info/)) and the Yasuhiro Kojima Lab ([National Cancer Center Research Institute, Tokyo](https://www.ncc.go.jp/jp/ri/division/computational_life_science/index.html)), and was developed by Koichiro Majima.
 

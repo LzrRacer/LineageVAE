@@ -7,6 +7,16 @@ LineageVAE is a groundbreaking computational tool designed to map the gene expre
 
 This project is a collaborative effort led by the Teppei Shimamura Lab ([Tokyo Medical and Dental University, Tokyo and Nagoya University, Nagoya](https://www.shimamlab.info/)) and the Yasuhiro Kojima Lab ([National Cancer Center Research Institute, Tokyo](https://www.ncc.go.jp/jp/ri/division/computational_life_science/index.html)), and was developed by Koichiro Majima.
 
+## Results
+
+Here are the GIF movies showing the results of the LineageVAE model inference:
+
+![Cell State Transition Inference](fig/state.gif "Inference of Cell State")
+![NGP Expression Transition Inference](fig/ngp.gif "Inference for NGP Gene")
+![PSAP Expression Transition Inference](fig/psap.gif "Inference for PSAP Gene")
+![CD34 Expression Transition Inference](fig/cd34.gif "Inference for CD34 Gene")
+
+
 ## Installation
 
 To install LineageVAE, follow these steps:

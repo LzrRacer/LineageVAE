@@ -1,80 +1,127 @@
-
-import argparse
-import scanpy as sc
-import pandas as pd
 import torch
-import datetime
-import os
-import joblib
+from torch.utils.data import DataLoader
 import numpy as np
-from workflow import run_analysis_for_hematopoiesis, check_results, latent_visualization, latent_transition_inferens, main_differentiation_destination
-from umap_visualization import save_umap_scatterplot, save_custom_umap_scatterplot, save_celltype_umap_scatterplot, save_transition_scatter_plot
-from tf_activity_analysis import process_tf_data, average_ann_data, process_for_tf_analysis, extract_tf_adata, calculate_tg_delta, plot_norm_of_dynamics, tfactivity_glm, create_heatmap_with_annotations
+import copy
+from dataset import LineageVAEDataManager
+from modules import LineageVAE
 
-# Argument parser setup
-parser = argparse.ArgumentParser(description='Execute hematopoiesis analysis.')
-parser.add_argument('--input', required=True, help='Path to input dataset (.h5ad)')
-parser.add_argument('--output', help='Output directory')
 
-# Parse arguments
-args = parser.parse_args()
-input_file_path = args.input
-output_directory = args.output
+class LineageVAEExperiment:
+    def __init__(self, model_params, lr, s, u, day, test_ratio, batch_size, num_workers, validation_ratio, undifferentiated=None, kinetics=False):
+        self.edm = LineageVAEDataManager(s, u, day, test_ratio, batch_size, num_workers, validation_ratio)
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = LineageVAE(**model_params, undifferentiated=undifferentiated, kinetics=kinetics)
+        self.model.to(self.device)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+        self.train_loss_list = []
+        self.test_loss_list = []
+        self.train_z_list = []
+        self.test_z_list = []
+        self.best_loss = None
+        self.undifferentiated=undifferentiated
 
-# If output directory is not provided, use current date and time for folder naming
-if output_directory is None:
-    dt_now = datetime.datetime.now().strftime('%Y%m%d%H%M')
-    folder_path = os.path.join('Result', f'{dt_now}_LineageVAE')
-else:
-    folder_path = output_directory
+    def train_epoch(self):
+        self.model.train()
+        total_loss = 0
+        entry_num = 0
+        for s, u, day, norm_mat in self.edm.train_loader:
+            s = s.to(self.device)
+            u = u.to(self.device)
+            day = day.to(self.device)
+            norm_mat = norm_mat.to(self.device)
+            self.optimizer.zero_grad()
+            loss, z_list = self.model.elbo_loss(
+                s, u, day, norm_mat, undifferentiated=self.undifferentiated, kinetics=False)
+            loss.backward()
+            self.optimizer.step()
+            total_loss += loss.item()
+            entry_num += s.shape[0]
+        loss_val = total_loss / entry_num
+        self.train_loss_list.append(loss_val)
+        self.train_z_list.append(z_list)
+        return(total_loss / entry_num)
 
-os.makedirs(folder_path, exist_ok=True)
+    def evaluate(self):
+        self.model.eval()
+        s = self.edm.validation_s.to(self.device)
+        u = self.edm.validation_u.to(self.device)
+        day = self.edm.validation_day.to(self.device)
+        norm_mat = self.edm.validation_norm_mat.to(self.device)
+        loss, z_list = self.model.elbo_loss(
+            s, u, day, norm_mat, undifferentiated=self.undifferentiated, kinetics=False)
+        entry_num = s.shape[0]
+        loss_val = loss / entry_num
+        return(loss_val)
 
-# Load input data
-adata = sc.read(input_file_path, cache=True)
-adata_input = adata.copy()
-raw_adata_input = adata.copy()
+    def test(self):
+        self.model.eval()
+        s = self.edm.test_s.to(self.device)
+        u = self.edm.test_u.to(self.device)
+        day = self.edm.test_day.to(self.device)
+        norm_mat = self.edm.test_norm_mat.to(self.device)
+        loss, z_list = self.model.elbo_loss(
+            s, u, day, norm_mat, undifferentiated=self.undifferentiated, kinetics=False)
+        entry_num = s.shape[0]
+        loss_val = loss / entry_num
+        self.test_loss_list.append(loss_val)
+        self.test_z_list.append(z_list)
+        return(loss_val)
 
-# Run analysis for hematopoiesis
-adata, select_adata, LineageVAE_exp, var_list = run_analysis_for_hematopoiesis(
-    adata_input, raw_adata_input, select_adata_input=None, var_list_input=None, 
-    undifferentiated=2, n_top_genes=1000, first_epoch=500, second_epoch=500, 
-    batch_size=20, error_count_limit=3, error_count_ii_limit=2, kinetics=True
-)
+    def train_total(self, epoch_num):
+        for epoch in range(epoch_num):
+            state_dict = copy.deepcopy(self.model.state_dict())
+            loss = self.train_epoch()
+            if np.isnan(loss):
+                self.model.load_state_dict(state_dict)
+                break
+            if epoch % 10 == 0:
+                print(f'loss at epoch {epoch} is {loss}')
 
-# Keep running analysis until results meet certain criteria
-while check_results(LineageVAE_exp):
-    adata, select_adata, LineageVAE_exp, var_list = run_analysis_for_hematopoiesis(
-        adata_input, raw_adata_input, select_adata_input=None, var_list_input=None,
-        undifferentiated=2, n_top_genes=1000, first_epoch=500, second_epoch=500,
-        batch_size=20, error_count_limit=3, error_count_ii_limit=1, kinetics=True
-    )
+    def embed_train_epoch(self):
+        self.model.train()
+        total_loss = 0
+        entry_num = 0
+        for s, u, day, norm_mat in self.edm.train_loader:
+            s = s.to(self.device)
+            u = u.to(self.device)
+            day = day.to(self.device)
+            norm_mat = norm_mat.to(self.device)
+            self.optimizer.zero_grad()
+            loss = self.model.embed_loss(
+                s, u, day, norm_mat)
+            loss.backward()
+            self.optimizer.step()
+            total_loss += loss.item()
+            entry_num += s.shape[0]
+        return(total_loss / entry_num)
 
-# Save model parameters
-model_parameters_path = os.path.join(folder_path, f'{dt_now}_model_parameters.pth')
-torch.save(LineageVAE_exp.model.state_dict(), model_parameters_path)
+    def embed_test(self):
+        self.model.eval()
+        s = self.edm.test_s.to(self.device)
+        u = self.edm.test_u.to(self.device)
+        day = self.edm.test_day.to(self.device)
+        norm_mat = self.edm.test_norm_mat.to(self.device)
+        loss = self.model.embed_loss(
+            s, u, day, norm_mat)
+        entry_num = s.shape[0]
+        loss_val = loss / entry_num
+        return(loss_val)
 
-# Save var_list as CSV
-var_list_df = pd.DataFrame({'var_names': var_list})
-var_list_csv_path = os.path.join(folder_path, f'{dt_now}_var_list.csv')
-var_list_df.to_csv(var_list_csv_path, index=False)
+    def embed_train_total(self, epoch_num):
+        for epoch in range(epoch_num):
+            state_dict = copy.deepcopy(self.model.state_dict())
+            loss = self.embed_train_epoch()
+            if np.isnan(loss):
+                self.model.load_state_dict(state_dict)
+                break
+            if epoch % 10 == 0:
+                print(f'loss at epoch {epoch} is {loss}')
 
-# Save var_list as CSV
-var_list_df = pd.DataFrame({'var_names': var_list})
-var_list_csv_path = os.path.join(folder_path, dt_now + '_var_list.csv')
-var_list_df.to_csv(var_list_csv_path, index=False)
+    def get_forward(self, s):
+        z_T0, qz_T0, ld, pu_zd_ld, qz_mu_list, qz_logvar_list, z_list, z0_list, qd_loc_list, qd_scale_list = self.model(s)
+        return(z_T0, qz_T0, ld, pu_zd_ld, qz_mu_list, qz_logvar_list, z_list, z0_list, qd_loc_list, qd_scale_list)
 
-# Save select_adata
-select_adata_path = os.path.join(folder_path, dt_now + '_select_adata.h5ad')
-select_adata.write(select_adata_path)
+    def init_optimizer(self, lr):
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
 
-# Save check_adata
-adata = sc.read(input_file_path, cache=True)
-adata = adata[:,var_list]
-check_adata, trans = latent_visualization(adata, LineageVAE_exp, adata.var_names) 
-check_adata_path = os.path.join(folder_path, dt_now + '_check_adata.h5ad')
-check_adata.write(check_adata_path)
-
-trans_path = os.path.join(folder_path, dt_now + '_trans_adata.h5ad')
-trans_path = os.path.join(folder_path, f'{dt_now}_trans.joblib')
-joblib.dump(trans, trans_path)
+    
